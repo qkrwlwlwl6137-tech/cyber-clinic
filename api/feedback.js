@@ -93,18 +93,21 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    const rawText = data.content && data.content[0] && data.content[0].text ? data.content[0].text : "";
+        // Claude가 "thinking" 블록을 먼저 보낼 수 있으므로, type이 "text"인 블록을 찾습니다.
+    const textBlock = Array.isArray(data.content)
+      ? data.content.find(function (block) {
+          return block && block.type === "text";
+        })
+      : null;
+    const rawText = textBlock && textBlock.text ? textBlock.text : "";
 
     let parsed;
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
-        } catch (e) {
-      console.error("JSON parse error. rawText:", rawText, "full data:", JSON.stringify(data));
-      res.status(502).json({
-        error: "AI 응답을 해석하는 데 문제가 발생했습니다. 다시 시도해주세요.",
-        debug: JSON.stringify(data).slice(0, 500),
-      });
+    } catch (e) {
+      console.error("JSON parse error. rawText:", rawText);
+      res.status(502).json({ error: "AI 응답을 해석하는 데 문제가 발생했습니다. 다시 시도해주세요." });
       return;
     }
 
