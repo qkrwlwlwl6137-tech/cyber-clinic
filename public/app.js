@@ -387,7 +387,30 @@
     printBtn.disabled = true;
     printBtn.textContent = "이미지 생성 중...";
 
-    html2canvas(target, { backgroundColor: "#ffffff", scale: 2 })
+    html2canvas(target, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      onclone: function (clonedDoc) {
+        // html2canvas는 textarea 안의 줄바꿈된 글자를 제대로 못 읽어서 잘려 보일 수 있습니다.
+        // 이미지를 찍기 직전에, 복제된 화면 안의 textarea를 같은 내용의 div로 바꿔서 해결합니다.
+        var clonedTarget = clonedDoc.querySelector(".prescription");
+        if (!clonedTarget) return;
+        var textareas = clonedTarget.querySelectorAll("textarea");
+        textareas.forEach(function (ta) {
+          var div = clonedDoc.createElement("div");
+          div.className = ta.className;
+          div.textContent = ta.value;
+          div.style.whiteSpace = "pre-wrap";
+          div.style.wordBreak = "break-word";
+          div.style.overflow = "visible";
+          div.style.height = "auto";
+          div.style.minHeight = window.getComputedStyle(ta).minHeight;
+          div.style.width = window.getComputedStyle(ta).width;
+          div.style.boxSizing = "border-box";
+          ta.parentNode.replaceChild(div, ta);
+        });
+      },
+    })
       .then(function (canvas) {
         const link = document.createElement("a");
         const now = new Date();
