@@ -1,0 +1,792 @@
+:root {
+  --blue-50: #eef5ff;
+  --blue-100: #dceaff;
+  --blue-400: #5b9bf5;
+  --blue-600: #2f6fe0;
+  --ink: #273347;
+  --ink-soft: #5b6678;
+  --paper: #ffffff;
+  --bg: #f3f6fb;
+  --red-soft: #ffecec;
+  --red-line: #f3a5a5;
+  --red-text: #d1473f;
+  --green-line: #bfe3c8;
+  --radius: 18px;
+  font-size: 17px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+h1, h2, h3,
+.brand,
+.procedure-card-header,
+.symptom-card h2,
+.prescription h2,
+.rx-mark {
+  font-family: "Jua", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+.app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--blue-600);
+}
+
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+}
+
+.progress .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blue-100);
+}
+
+.progress .dot.active {
+  background: var(--blue-600);
+}
+
+/* 활동 절차 패널 */
+.procedure-tracker {
+  background: var(--paper);
+  border-radius: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 14px rgba(40, 60, 100, 0.05);
+  overflow: hidden;
+}
+
+.procedure-toggle {
+  width: 100%;
+  border: none;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.procedure-chevron,
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.procedure-toggle.open .chevron {
+  transform: rotate(180deg);
+}
+
+.procedure-body {
+  padding: 16px;
+}
+
+.procedure-card {
+  background: var(--blue-50);
+  border: 2px dashed var(--blue-400);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.procedure-card-header {
+  text-align: center;
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 1.02rem;
+  margin-bottom: 12px;
+}
+
+.procedure-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.procedure-card-icon {
+  width: 72px;
+  height: auto;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.procedure-card-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.procedure-card-list li {
+  margin-bottom: 6px;
+}
+
+.procedure-card-list strong {
+  color: var(--blue-600);
+}
+
+@media (max-width: 480px) {
+  .procedure-card-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: left;
+  }
+  .procedure-card-icon {
+    width: 56px;
+  }
+}
+
+.procedure-list {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--ink-soft);
+}
+
+.procedure-list li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.procedure-list li.step-done {
+  color: #2f8f4e;
+  text-decoration: line-through;
+  text-decoration-color: #bfe3c8;
+}
+
+.procedure-list li.step-current {
+  color: var(--blue-600);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.procedure-list li.step-done::before {
+  content: "✅ ";
+}
+
+.procedure-list li.step-current::before {
+  content: "👉 ";
+}
+
+.screen {
+  display: none;
+}
+
+.screen.visible {
+  display: block;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-panel {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: 0 6px 20px rgba(40, 60, 100, 0.06);
+  text-align: center;
+}
+
+.card-panel h1 {
+  font-size: 1.4rem;
+  margin-top: 0;
+}
+
+.hospital-icon {
+  font-size: 3rem;
+  margin-bottom: 6px;
+}
+
+.hospital-icon-img {
+  width: 110px;
+  height: auto;
+  margin-bottom: 4px;
+}
+
+.doctor-icon-img {
+  width: 120px;
+  height: auto;
+  margin-bottom: 10px;
+  border-radius: 14px;
+}
+
+.ai-doctor-img {
+  width: 220px;
+}
+
+.doctor-sign-img {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.sign-doctor {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 타로 카드 덱 */
+.tarot-wrap {
+  margin: 22px 0 10px;
+}
+
+.tarot-guide {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin: 10px 0 0;
+}
+
+.tarot-deck {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  perspective: 800px;
+}
+
+.tarot-card {
+  width: 64px;
+  height: 92px;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.tarot-card:hover:not(.flipped):not(.disabled) {
+  transform: translateY(-6px) rotate(0deg);
+  box-shadow: 0 8px 16px rgba(47, 111, 224, 0.25);
+}
+
+.tarot-card.flipped {
+  transform: rotateY(180deg);
+  cursor: default;
+}
+
+.tarot-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tarot-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tarot-back {
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+  color: #fff;
+  font-size: 1.6rem;
+}
+
+.tarot-front {
+  background: var(--blue-50);
+  border: 2px solid var(--blue-400);
+  transform: rotateY(180deg);
+  color: var(--blue-600);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.redraw-note {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid #e3e9f2;
+  line-height: 1.6;
+}
+
+.btn {
+  display: inline-block;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--blue-600);
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(47, 111, 224, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn.secondary {
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  text-decoration: underline;
+}
+
+.symptom-card {
+  margin-top: 20px;
+  background: var(--blue-50);
+  border: 2px dashed var(--blue-400);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: left;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--blue-600);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.symptom-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  color: var(--blue-600);
+}
+
+.symptom-card p {
+  margin: 0;
+  color: var(--ink);
+}
+
+.field-block {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(40, 60, 100, 0.05);
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.field-block.needs-revision {
+  border-color: var(--red-line);
+  background: var(--red-soft);
+}
+
+.field-block label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.field-block .hint-text {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
+.principle-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.principle-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue-50);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0;
+  border: 2px solid transparent;
+}
+
+.principle-options input {
+  accent-color: var(--blue-600);
+}
+
+.principle-options label.picked {
+  border-color: var(--blue-600);
+}
+
+textarea {
+  width: 100%;
+  min-height: 90px;
+  border-radius: 12px;
+  border: 1.5px solid #dbe3f0;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  color: var(--ink);
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--blue-400);
+}
+
+.field-feedback {
+  margin-top: 10px;
+  font-size: 0.92rem;
+  color: var(--red-text);
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: none;
+}
+
+.field-feedback.visible {
+  display: block;
+}
+
+.attempt-note {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.feedback-panel {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(40, 60, 100, 0.05);
+}
+
+.feedback-panel h3 {
+  margin-top: 0;
+  color: var(--blue-600);
+  font-size: 1.05rem;
+}
+
+.feedback-panel .praise-item {
+  background: var(--blue-50);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.feedback-panel .praise-item::before {
+  content: "\2728 ";
+}
+
+.loading {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--ink-soft);
+}
+
+.transition-screen {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.transition-screen .emoji {
+  font-size: 3rem;
+}
+
+/* 처방전 */
+.prescription {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 30px 26px;
+  box-shadow: 0 6px 20px rgba(40, 60, 100, 0.08);
+  border: 3px solid var(--green-line);
+}
+
+.prescription h2 {
+  text-align: center;
+  color: #2f8f4e;
+  margin-top: 0;
+}
+
+.prescription .rx-mark {
+  font-size: 1.8rem;
+  text-align: center;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.prescription .line {
+  margin: 16px 0;
+  line-height: 1.9;
+}
+
+.prescription textarea {
+  border: 1px dashed #c9d3e0;
+  background: #fafcff;
+}
+
+.rx-card {
+  background: #eefaf1;
+  border: 2px dashed #6fc98a;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 4px 0 20px;
+  text-align: left;
+}
+
+.rx-card-tag {
+  background: #1f7a43 !important;
+  color: #fff !important;
+  font-weight: 800;
+}
+
+.rx-card h3 {
+  margin: 8px 0 8px;
+  color: #227a41;
+  font-size: 1.1rem;
+}
+
+.rx-card p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.rx-date-row {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  margin-top: 22px;
+}
+
+.prescription .sign-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  margin-top: 14px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sign-doctor-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.sign-label {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  align-self: flex-end;
+}
+
+.sign-name-input {
+  border: 1px solid #c9d3e0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.92rem;
+  text-align: right;
+  width: 160px;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.sign-name-input:focus {
+  outline: none;
+  border-color: var(--blue-400);
+}
+
+/* 서명 표시 영역 (처방전 안) */
+.signature-display {
+  width: 170px;
+  height: 80px;
+  border: 1.5px dashed #c9d3e0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(45deg, #fafcff, #fafcff 10px, #f3f6fb 10px, #f3f6fb 20px);
+  overflow: hidden;
+}
+
+.signature-placeholder {
+  border: none;
+  background: transparent;
+  color: var(--blue-600);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.signature-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sign-redo-btn {
+  border: none;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.sign-redo-btn:hover {
+  background: var(--blue-100);
+}
+
+/* 서명 모달 */
+.signature-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(39, 51, 71, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.signature-modal-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.signature-modal-card h3 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+#rx-signature-pad {
+  border: 1px solid #c9d3e0;
+  border-radius: 10px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+  max-width: 100%;
+}
+
+.signature-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.signature-modal-actions .btn {
+  padding: 10px 16px;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 480px) {
+  .prescription .sign-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sign-doctor-block {
+    align-items: stretch;
+  }
+  .sign-label {
+    align-self: flex-start;
+  }
+  .sign-name-input {
+    width: 100%;
+    text-align: left;
+  }
+  .signature-display {
+    width: 100%;
+  }
+  .sign-redo-btn {
+    align-self: flex-start;
+  }
+}
+
+.footer-note {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  margin-top: 24px;
+}

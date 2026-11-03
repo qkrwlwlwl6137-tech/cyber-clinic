@@ -1,0 +1,7 @@
+{
+  "name": "cyber-clinic",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "119 가상공간 치료 센터 - 도덕 수업용 AI 피드백 웹사이트 (Vercel)"
+}
