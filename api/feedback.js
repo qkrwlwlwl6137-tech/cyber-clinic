@@ -99,9 +99,12 @@ export default async function handler(req, res) {
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
-    } catch (e) {
-      console.error("JSON parse error:", rawText);
-      res.status(502).json({ error: "AI 응답을 해석하는 데 문제가 발생했습니다. 다시 시도해주세요." });
+        } catch (e) {
+      console.error("JSON parse error. rawText:", rawText, "full data:", JSON.stringify(data));
+      res.status(502).json({
+        error: "AI 응답을 해석하는 데 문제가 발생했습니다. 다시 시도해주세요.",
+        debug: JSON.stringify(data).slice(0, 500),
+      });
       return;
     }
 
