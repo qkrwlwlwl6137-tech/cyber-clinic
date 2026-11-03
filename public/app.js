@@ -254,11 +254,7 @@
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-                let msg = errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.";
-        if (errData.debug) {
-          msg += "\n\n[디버그 정보]\n" + errData.debug;
-        }
-        alert(msg);
+               alert(errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.");
         showScreen("diagnose");
         state.attempt -= 1;
         return;
