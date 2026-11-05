@@ -9,6 +9,44 @@
     deckAssignment: [],
   };
 
+  // ---- 자동 저장 / 복원 (새로고침해도 진단 작성 내용이 사라지지 않도록) ----
+  const STORAGE_KEY = "cyberClinicProgress";
+
+  function saveProgress() {
+    try {
+      const data = {
+        card: state.card,
+        attempt: state.attempt,
+        lastAnswers: state.lastAnswers,
+        form: {
+          principle: getSelectedPrinciple(),
+          reason: inputReason ? inputReason.value : "",
+          action: inputAction ? inputAction.value : "",
+        },
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      // localStorage를 못 쓰는 환경이면 자동저장만 조용히 건너뜁니다 (활동 진행엔 문제 없음)
+    }
+  }
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearProgress() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      // 무시
+    }
+  }
+
   const screens = {
     start: document.getElementById("screen-start"),
     diagnose: document.getElementById("screen-diagnose"),
@@ -117,6 +155,7 @@
     tarotGuide.style.display = "none";
 
     state.card = card;
+    saveProgress();
 
     setTimeout(function () {
       cardCategory.textContent = card.category;
@@ -144,14 +183,19 @@
     buildDeck();
   });
 
-  goDiagnoseBtn.addEventListener("click", function () {
+  function fillRecapCard() {
     const recapCard = document.getElementById("recapCard");
     recapCard.innerHTML =
       '<span class="tag">' + state.card.category + "</span>" +
       "<h2>" + state.card.title + "</h2>" +
       "<p>" + state.card.content + "</p>";
+  }
+
+  goDiagnoseBtn.addEventListener("click", function () {
+    fillRecapCard();
     state.attempt = 0;
     resetDiagnoseForm();
+    saveProgress();
     showScreen("diagnose");
   });
 
@@ -179,8 +223,18 @@
     radio.addEventListener("change", function () {
       document.querySelectorAll(".principle-options label").forEach((label) => label.classList.remove("picked"));
       radio.closest("label").classList.add("picked");
+      saveProgress();
     });
   });
+
+  // 입력할 때마다 자동 저장 (너무 자주 저장하지 않도록 약간의 지연을 둡니다)
+  let saveTimer = null;
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveProgress, 400);
+  }
+  inputReason.addEventListener("input", scheduleSave);
+  inputAction.addEventListener("input", scheduleSave);
 
   function resetDiagnoseForm() {
     principleRadios.forEach((r) => (r.checked = false));
@@ -231,8 +285,8 @@
   // ---- 네트워크 재시도 유틸 ----
   // 요청이 실패(네트워크 오류 또는 5xx 서버 오류)하면 최대 maxRetryAttempts번까지
   // 1초 -> 2초 -> 3초 간격으로 점점 늘려가며 자동으로 다시 시도합니다.
-  // 모바일 환경에서 서버리스 함수의 "콜드 스타트" 지연 때문에 첫 요청만 실패하는
-  // 경우를 사람이 다시 누르지 않아도 자동으로 넘기기 위한 로직입니다.
+  // 모바일/태블릿 환경에서 서버리스 함수의 "콜드 스타트" 지연 때문에 첫 요청만
+  // 실패하는 경우를 사람이 다시 누르지 않아도 자동으로 넘기기 위한 로직입니다.
   async function fetchWithRetry(url, options, onRetry, maxRetryAttempts) {
     const attempts = maxRetryAttempts || 4;
     let lastError = null;
@@ -269,6 +323,7 @@
 
     state.attempt += 1;
     state.lastAnswers = answers;
+    saveProgress();
     clearFieldStates();
     praiseArea.innerHTML = "";
     showScreen("loading");
@@ -299,6 +354,7 @@
         alert(errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.");
         showScreen("diagnose");
         state.attempt -= 1;
+        saveProgress();
         return;
       }
 
@@ -309,6 +365,7 @@
       alert("네트워크 문제로 피드백을 받아오지 못했어요. 다시 시도해주세요.");
       showScreen("diagnose");
       state.attempt -= 1;
+      saveProgress();
     }
   });
 
@@ -461,6 +518,9 @@
         link.download = "가상공간_처방전_" + stamp + ".png";
         link.href = canvas.toDataURL("image/png");
         link.click();
+        // 다운로드까지 끝났으니 활동이 완료된 것으로 보고 자동저장 데이터를 지웁니다.
+        // (다음에 새로고침하거나 다음 학생이 쓸 때 이전 내용이 남아있지 않도록)
+        clearProgress();
       })
       .catch(function (err) {
         console.error(err);
@@ -564,7 +624,43 @@
     closeSignatureModal();
   });
 
-  // 초기화
-  buildDeck();
-  updateProcedureSteps("start");
+  // ---- 초기화 (저장된 진행 상황이 있으면 복원, 없으면 처음부터 시작) ----
+  const saved = loadProgress();
+
+  if (saved && saved.card) {
+    state.card = saved.card;
+    state.attempt = saved.attempt || 0;
+    state.lastAnswers = saved.lastAnswers || null;
+
+    buildDeck(); // 카드 뽑기 화면 자체는 평소처럼 준비해두되, 화면은 바로 아래에서 진단 화면으로 전환합니다.
+    fillRecapCard();
+    resetDiagnoseForm();
+
+    // 저장된 입력값 복원
+    if (saved.form) {
+      if (saved.form.principle) {
+        const radio = document.querySelector(
+          'input[name="principle"][value="' + saved.form.principle.replace(/"/g, '\\"') + '"]'
+        );
+        if (radio) {
+          radio.checked = true;
+          radio.closest("label").classList.add("picked");
+        }
+      }
+      inputReason.value = saved.form.reason || "";
+      inputAction.value = saved.form.action || "";
+    }
+
+    if (state.attempt > 0) {
+      attemptNote.textContent =
+        "이어서 작성해볼까요? (" + state.attempt + "/" + state.maxAttempts + "회 작성함)";
+      submitBtn.textContent =
+        state.attempt >= state.maxAttempts - 1 ? "마지막으로 다시 제출하기" : "다시 제출하기";
+    }
+
+    showScreen("diagnose");
+  } else {
+    buildDeck();
+    updateProcedureSteps("start");
+  }
 })();
