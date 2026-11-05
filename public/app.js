@@ -228,6 +228,41 @@
     return { principle, reason, action };
   }
 
+  // ---- 네트워크 재시도 유틸 ----
+  // 요청이 실패(네트워크 오류 또는 5xx 서버 오류)하면 최대 maxRetryAttempts번까지
+  // 1초 -> 2초 -> 3초 간격으로 점점 늘려가며 자동으로 다시 시도합니다.
+  // 모바일 환경에서 서버리스 함수의 "콜드 스타트" 지연 때문에 첫 요청만 실패하는
+  // 경우를 사람이 다시 누르지 않아도 자동으로 넘기기 위한 로직입니다.
+  async function fetchWithRetry(url, options, onRetry, maxRetryAttempts) {
+    const attempts = maxRetryAttempts || 4;
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok && response.status >= 500) {
+          // 서버 쪽 타임아웃/오류 -> 재시도 대상으로 취급
+          lastError = new Error("서버 오류 status " + response.status);
+          if (attempt < attempts) {
+            if (typeof onRetry === "function") onRetry(attempt, attempts);
+            await new Promise((r) => setTimeout(r, attempt * 1000));
+            continue;
+          }
+          return response; // 마지막 시도였다면 그대로 반환해서 호출 쪽에서 에러 메시지 처리
+        }
+        return response; // 성공 (2xx~4xx 포함, 4xx는 호출 쪽에서 처리)
+      } catch (err) {
+        lastError = err;
+        if (attempt < attempts) {
+          if (typeof onRetry === "function") onRetry(attempt, attempts);
+          await new Promise((r) => setTimeout(r, attempt * 1000));
+          continue;
+        }
+      }
+    }
+    throw lastError;
+  }
+
   submitBtn.addEventListener("click", async function () {
     const answers = validateBeforeSubmit();
     if (!answers) return;
@@ -239,22 +274,29 @@
     showScreen("loading");
 
     try {
-      const res = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardTitle: state.card.title,
-          cardContent: state.card.content,
-          principle: answers.principle,
-          reason: answers.reason,
-          action: answers.action,
-          attemptNumber: state.attempt,
-        }),
-      });
+      const res = await fetchWithRetry(
+        "/api/feedback",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cardTitle: state.card.title,
+            cardContent: state.card.content,
+            principle: answers.principle,
+            reason: answers.reason,
+            action: answers.action,
+            attemptNumber: state.attempt,
+          }),
+        },
+        function (attempt, total) {
+          // 재시도가 발생할 때마다 호출됩니다 (현재는 콘솔 로그만, 필요하면 화면 문구로 바꿀 수 있어요)
+          console.log("피드백 요청 재시도 중... (" + attempt + "/" + total + ")");
+        }
+      );
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-               alert(errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.");
+        alert(errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.");
         showScreen("diagnose");
         state.attempt -= 1;
         return;
