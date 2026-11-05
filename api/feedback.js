@@ -1,6 +1,13 @@
 // Vercel 서버리스 함수: /api/feedback
 // Claude API 키는 여기(서버)에서만 사용되고, 학생 화면(브라우저)에는 절대 노출되지 않습니다.
 
+// 함수가 응답할 수 있는 최대 시간을 늘려줍니다.
+// (기본값보다 짧으면, AI 응답이 조금 늦게 올 때 504 타임아웃으로 끊겨서
+//  학생이 "오류" 화면을 보고 다시 눌러야 하는 문제가 생길 수 있습니다.)
+export const config = {
+  maxDuration: 60,
+};
+
 const SYSTEM_PROMPT = `당신은 중학교 1학년 도덕 수업을 돕는 다정한 선생님입니다.
 학생이 "가상공간 치료 센터" 활동지의 처방전 세 항목을 작성했습니다. 학생이 제시한 "증상 카드"(가상공간 속 도덕 문제 상황)를 참고하여, 학생의 답을 평가하지 말고 성장을 돕는 피드백만 주세요.
 
@@ -43,6 +50,7 @@ const SYSTEM_PROMPT = `당신은 중학교 1학년 도덕 수업을 돕는 다�
 }
 
 praise는 1~2개만 작성하고, fields의 hint는 needsRevision이 true인 항목에만 자연스러운 1~2문장으로 작성하세요. 세 항목 모두 훌륭하다면 모든 needsRevision을 false로 하고 hint는 빈 문자열로 두세요.`;
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
