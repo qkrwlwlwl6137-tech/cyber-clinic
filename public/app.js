@@ -321,12 +321,17 @@
     const answers = validateBeforeSubmit();
     if (!answers) return;
 
-    state.attempt += 1;
+    // 주의: 여기서는 아직 state.attempt를 올리지 않습니다.
+    // AI 응답이 성공적으로 도착한 뒤에만 "작성 횟수"를 차감합니다.
+    // 이렇게 해야, AI가 응답하는 동안(로딩 화면) 새로고침을 하거나
+    // 통신이 실패해도 학생의 작성 횟수가 억울하게 깎이지 않습니다.
     state.lastAnswers = answers;
     saveProgress();
     clearFieldStates();
     praiseArea.innerHTML = "";
     showScreen("loading");
+
+    const attemptNumberForThisTry = state.attempt + 1;
 
     try {
       const res = await fetchWithRetry(
@@ -340,7 +345,7 @@
             principle: answers.principle,
             reason: answers.reason,
             action: answers.action,
-            attemptNumber: state.attempt,
+            attemptNumber: attemptNumberForThisTry,
           }),
         },
         function (attempt, total) {
@@ -353,19 +358,20 @@
         const errData = await res.json().catch(() => ({}));
         alert(errData.error || "피드백을 받아오지 못했어요. 잠시 후 다시 시도해주세요.");
         showScreen("diagnose");
-        state.attempt -= 1;
-        saveProgress();
+        // 실패했으니 횟수는 그대로 둡니다 (아직 올리지 않았으므로 되돌릴 것도 없음).
         return;
       }
 
       const data = await res.json();
+      // 응답을 정상적으로 받았을 때만 작성 횟수를 확정해서 올립니다.
+      state.attempt = attemptNumberForThisTry;
+      saveProgress();
       handleFeedbackResult(data);
     } catch (e) {
       console.error(e);
       alert("네트워크 문제로 피드백을 받아오지 못했어요. 다시 시도해주세요.");
       showScreen("diagnose");
-      state.attempt -= 1;
-      saveProgress();
+      // 실패했으니 횟수는 그대로 둡니다.
     }
   });
 
